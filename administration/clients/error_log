@@ -1,0 +1,27 @@
+[15-Jan-2014 22:43:01 Africa/Johannesburg] PHP Warning:  mkdir() [<a href='function.mkdir'>function.mkdir</a>]: No such file or directory in /home/collopco/public_html/administration/clients/details.php on line 152
+[15-Jan-2014 22:43:01 Africa/Johannesburg] PHP Warning:  mkdir() [<a href='function.mkdir'>function.mkdir</a>]: No such file or directory in /home/collopco/public_html/administration/clients/details.php on line 156
+[15-Jan-2014 22:43:01 Africa/Johannesburg] PHP Warning:  mkdir() [<a href='function.mkdir'>function.mkdir</a>]: No such file or directory in /home/collopco/public_html/administration/clients/details.php on line 159
+[15-Jan-2014 22:43:01 Africa/Johannesburg] PHP Warning:  mkdir() [<a href='function.mkdir'>function.mkdir</a>]: No such file or directory in /home/collopco/public_html/administration/clients/details.php on line 162
+[15-Jan-2014 22:43:01 Africa/Johannesburg] PHP Warning:  mkdir() [<a href='function.mkdir'>function.mkdir</a>]: No such file or directory in /home/collopco/public_html/administration/clients/details.php on line 165
+[15-Jan-2014 22:43:01 Africa/Johannesburg] PHP Warning:  mkdir() [<a href='function.mkdir'>function.mkdir</a>]: No such file or directory in /home/collopco/public_html/administration/clients/details.php on line 168
+[15-Jan-2014 22:43:01 Africa/Johannesburg] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home/collopco/public_html/administration/clients/details.php:152) in /home/collopco/public_html/administration/clients/details.php on line 180
+[17-Mar-2014 11:28:32 Africa/Johannesburg] PHP Fatal error:  Uncaught exception 'Zend_Db_Adapter_Mysqli_Exception' with message 'Table 'collopco_llopc.areamap' doesn't exist' in /home/collopco/public_html/library/classes/Zend/Db/Adapter/Mysqli.php:204
+Stack trace:
+#0 /home/collopco/public_html/library/classes/Zend/Db/Table/Abstract.php(824): Zend_Db_Adapter_Mysqli->describeTable('areamap', NULL)
+#1 /home/collopco/public_html/library/classes/Zend/Db/Table/Abstract.php(846): Zend_Db_Table_Abstract->_setupMetadata()
+#2 /home/collopco/public_html/library/classes/Zend/Db/Table/Abstract.php(886): Zend_Db_Table_Abstract->_getCols()
+#3 /home/collopco/public_html/library/classes/Zend/Db/Table/Abstract.php(970): Zend_Db_Table_Abstract->_setupPrimaryKey()
+#4 /home/collopco/public_html/library/classes/Zend/Db/Table/Select.php(100): Zend_Db_Table_Abstract->info()
+#5 /home/collopco/public_html/library/classes/Zend/Db/Table/Select.php(78): Zend_Db_Table_Select->setTable(Object(class_areaMap))
+#6 /home/collopco/public_html/library/classes/Zend/Db/Table/Abstract.php(1006): Zend_Db_Tabl in /home/collopco/public_html/library/classes/Zend/Db/Adapter/Mysqli.php on line 204
+[17-Mar-2014 11:32:58 Africa/Johannesburg] PHP Fatal error:  Uncaught exception 'Zend_Db_Adapter_Mysqli_Exception' with message 'Table 'collopco_llopc.areamap' doesn't exist' in /home/collopco/public_html/library/classes/Zend/Db/Adapter/Mysqli.php:204
+Stack trace:
+#0 /home/collopco/public_html/library/classes/Zend/Db/Table/Abstract.php(824): Zend_Db_Adapter_Mysqli->describeTable('areamap', NULL)
+#1 /home/collopco/public_html/library/classes/Zend/Db/Table/Abstract.php(846): Zend_Db_Table_Abstract->_setupMetadata()
+#2 /home/collopco/public_html/library/classes/Zend/Db/Table/Abstract.php(886): Zend_Db_Table_Abstract->_getCols()
+#3 /home/collopco/public_html/library/classes/Zend/Db/Table/Abstract.php(970): Zend_Db_Table_Abstract->_setupPrimaryKey()
+#4 /home/collopco/public_html/library/classes/Zend/Db/Table/Select.php(100): Zend_Db_Table_Abstract->info()
+#5 /home/collopco/public_html/library/classes/Zend/Db/Table/Select.php(78): Zend_Db_Table_Select->setTable(Object(class_areaMap))
+#6 /home/collopco/public_html/library/classes/Zend/Db/Table/Abstract.php(1006): Zend_Db_Tabl in /home/collopco/public_html/library/classes/Zend/Db/Adapter/Mysqli.php on line 204
+[12-Nov-2014 07:24:06 Africa/Johannesburg] PHP Warning:  require_once(class/campaigntype.php) [<a href='function.require-once'>function.require-once</a>]: failed to open stream: No such file or directory in /home/emanager/public_html/administration/clients/details.php on line 18
+[12-Nov-2014 07:24:06 Africa/Johannesburg] PHP Fatal error:  require_once() [<a href='function.require'>function.require</a>]: Failed opening required 'class/campaigntype.php' (include_path='/home/emanager/public_html/:/home/emanager/public_html/library/classes/') in /home/emanager/public_html/administration/clients/details.php on line 18

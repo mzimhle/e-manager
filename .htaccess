@@ -1,0 +1,45 @@
+<IfModule mod_rewrite.c>
+
+RewriteEngine On
+
+RewriteBase /
+
+DirectoryIndex index.php default.php
+
+Options Includes FollowSymLinks MultiViews
+
+######################################################################## 
+
+##### Redirect non www to www domains start
+#collop.co.za
+#RewriteCond %{HTTP_HOST} ^e-manager\.co\.za$ [NC]
+#RewriteRule ^(.*)$ http://www.e-manager.co.za/$1 [R=301,L]
+##### Redirect non www to www domains end
+
+#sasss.co.za
+#RewriteCond %{HTTP_HOST} ^datuma.e-manager\.co\.za$ [NC]
+#RewriteRule ^(.*)$ http://datuma.e-manager.co.za/$1 [R=301,L]
+##### Redirect non www to www domains end
+########################################################################
+
+########################################################################
+#RewriteCond %{HTTP_HOST} ^(www.)?e-manager\.co\.za$
+#RewriteRule ^(/)?$ administration [L]
+
+RewriteCond %{HTTP_HOST} !^e-manager\.co\.za$
+RewriteRule . - [S=1]
+RewriteRule ^admin/(.*)$ 	administration/$1 [QSA,L]
+########################################################################
+########################################################################
+RewriteCond %{HTTP_HOST} !^datuma.e-manager\.co\.za$
+RewriteRule . - [S=2]
+RewriteRule	^campaign/(.*)$	campaigns/MU3H/0860/$1 	[QSA,L]
+RewriteRule	^admin/(.*)$ 		adminclient/MU3H/$1			[QSA,L]
+########################################################################
+########################################################################
+
+#### MAILERS ####
+RewriteRule ^mailer/view/(.*)$				mailers/view.php?code=$1				[QSA,L]
+RewriteRule ^mailer/tracking/(.*)$			mailers/tracking.php?tracking=$1	[QSA,L]
+RewriteRule ^mailer/unsubscribe/(.*)$	mailers/unsubscribe.php?code=$1	[QSA,L]
+

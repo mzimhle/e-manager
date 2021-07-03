@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+  <title>Google Maps JavaScript API v3 Example: Fusion Tables Layer Styling</title>
+  <link href="http://code.google.com/apis/maps/documentation/javascript/examples/default.css" rel="stylesheet" type="text/css" />
+  <link href="fonts.css" rel="stylesheet" type="text/css" />
+  <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false"></script>
+  <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+
+  <style type='text/css'>
+	 * {
+		font-family:'Conv_UniversLTStd-Ex',Sans-Serif;
+		letter-spacing:-1px;
+		word-spacing:2px;
+	}
+
+.wrapperwrapper{
+   position: relative;
+   float: left;
+   left: 0.00%;
+   width: 580px;
+   background-image: url("stripe.png");
+   background-repeat: repeat-y;
+}
+
+.tablewrapper {
+   position: relative;
+   float: left;
+   left: 0.00%;
+   width: 600px;
+   background-image: url("stripe-both.png");
+   background-repeat: repeat-y;
+}
+
+.wrapper{
+   position: relative;
+   float: left;
+   left: 0.00%;
+   width: 540px;
+   margin-top: 10px;
+   font-size: 16px;
+}
+.left{
+   position: relative;
+   float: left;
+   left: 0.00%;
+   width: 190px;
+   margin-top: -10px;
+}
+.right{
+   position: relative;
+   float: right;
+   right: 0.00%;
+   text-align: left;
+   width: 330px;
+   margin-top: -25px;
+}
+
+.gallery table { float: left;
+                 margin: 0 5px 20px 0; }
+a:link {color:#000000;}      /* unvisited link */
+a:visited {color:#000000;}  /* visited link */
+a:hover {color:#0000FF;}  /* mouse over link */
+a:active {color:#0000FF;}  /* selected link */
+
+
+table {
+	border-width: 1px;
+	border-spacing: 1px;
+	border-style: solid;
+	border-color: gray;
+	border-collapse: collapse;
+	margin-left: 30px;
+	margin-right: 20px;
+}
+table th {
+	border-width: 1px;
+	padding: 1px;
+	border-style: dotted;
+	border-color: gray;
+	-moz-border-radius: ;
+}
+table td {
+	border-width: 1px;
+	padding: 1px;
+	border-style: dotted;
+	border-color: gray;
+	-moz-border-radius: ;
+}
+
+table tr {
+	padding-bottom: 1em;
+}
+</style>
+<script src="https://maps.googleapis.com/maps/api/js?sensor=false&libraries=places" type="text/javascript"></script>
+<script type="text/javascript">
+google.load('visualization', '1');
+
+String.prototype.toProperCase = function () {
+    return this.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+};
+
+
+String.prototype.limitWidth = function (width) {
+	if (this.length < width) {
+		return this;
+	} else {
+		return this.substr(0,width-3) + "...";
+	}
+};
+
+
+function initialize() {
+	var southafrica = new google.maps.LatLng(-29, 24);
+
+	map = new google.maps.Map(document.getElementById('map_canvas'), {
+		center: southafrica,
+		zoom: 5,
+		mapTypeId: google.maps.MapTypeId.ROADMAP,
+		streetViewControl: false,
+		mapTypeControl: false
+	});
+
+	var opt = { minZoom: 5 };
+	map.setOptions(opt);
+
+	// Search Box
+	var input = document.getElementById('searchTextField');
+	var autocomplete = new google.maps.places.Autocomplete(input);
+
+	autocomplete.bindTo('bounds', map);
+
+	var infowindow = new google.maps.InfoWindow();
+	var marker = new google.maps.Marker({
+		map: map
+	});
+
+	google.maps.event.addListener(autocomplete, 'place_changed', function() {
+		infowindow.close();
+		var place = autocomplete.getPlace();
+		if (place.geometry.viewport) {
+			map.fitBounds(place.geometry.viewport);
+		} else {
+			map.setCenter(place.geometry.location);
+			map.setZoom(13);  // Why 17? Because it looks good.
+		}
+
+		var image = new google.maps.MarkerImage(
+			place.icon,
+			new google.maps.Size(71, 71),
+			new google.maps.Point(0, 0),
+			new google.maps.Point(17, 34),
+			new google.maps.Size(35, 35));
+		marker.setIcon(image);
+		marker.setPosition(place.geometry.location);
+
+		var address = '';
+		if (place.address_components) {
+		address = [(place.address_components[0] &&
+					place.address_components[0].short_name || ''),
+					(place.address_components[1] &&
+					place.address_components[1].short_name || ''),
+					(place.address_components[2] &&
+					place.address_components[2].short_name || '')
+					].join(' ');
+		}
+
+		//infowindow.setContent('<div><strong>' + place.name + '</strong><br>' + address);
+		//infowindow.open(map, marker);
+		marker.setVisible(false);
+		document.getElementById("map_canvas").style.visibility="visible";
+		document.getElementById("info").style.visibility="visible";
+	});
+
+
+	// End search box
+
+	layer_wards = new google.maps.FusionTablesLayer({
+		query: {
+			select: 'geometry',
+			from: '3139387'
+		},
+		styles: [{
+			polygonOptions: {
+				fillColor: "#0000FF",
+				fillOpacity: 0.04
+			}
+		}]
+	});
+
+	layer_muni = new google.maps.FusionTablesLayer({
+		query: {
+			select: 'geometry',
+			from: '4133091 '
+		},
+		styles: [{
+			polygonOptions: {
+				fillColor: "#0000FF",
+				fillOpacity: 0.04
+			}
+		}],
+		suppressInfoWindows: true
+	});
+
+
+	var parliament_coords = new google.maps.LatLng(-33.926370, 18.417750);
+	var parliament = new google.maps.Marker({position: parliament_coords, map: map, title: "Parliament", icon: "parliament.png"});
+
+	var ec_coords = new google.maps.LatLng(-32.849444,27.438056);
+	var ec = new google.maps.Marker({position: ec_coords, map: map, title: "Eastern Cape", icon: "parliament.png", visible: false});
+
+	var fs_coords = new google.maps.LatLng(-29.118349,26.22492);
+	var fs = new google.maps.Marker({position: fs_coords, map: map, title: "Free State", icon: "parliament.png", visible: false});
+
+	var gt_coords = new google.maps.LatLng(-26.204103,28.047305);
+	var gt = new google.maps.Marker({position: gt_coords, map: map, title: "Gauteng", icon: "parliament.png", visible: false});
+
+	var kn_coords = new google.maps.LatLng(-29.857876,31.027581);
+	var kn = new google.maps.Marker({position: kn_coords, map: map, title: "KwaZulu-Natal", icon: "parliament.png", visible: false});
+
+	var lp_coords = new google.maps.LatLng(-23.9, 29.45);
+	var lp = new google.maps.Marker({position: lp_coords, map: map, title: "Limpopo", icon: "parliament.png", visible: false});
+
+	var mp_coords = new google.maps.LatLng(-25.465833, 30.985278);
+	var mp = new google.maps.Marker({position: mp_coords, map: map, title: "Mpumalanga", icon: "parliament.png", visible: false});
+
+	var nw_coords = new google.maps.LatLng(-25.85, 25.633333);
+	var nw = new google.maps.Marker({position: nw_coords, map: map, title: "North West", icon: "parliament.png", visible: false});
+
+	var nc_coords = new google.maps.LatLng(-28.72929,24.75404);
+	var nc = new google.maps.Marker({position: nc_coords, map: map, title: "Northern Cape", icon: "parliament.png", visible: false});
+
+	var wc_coords = new google.maps.LatLng(-33.924868,18.424055);
+	var wc = new google.maps.Marker({position: wc_coords, map: map, title: "Western Cape", icon: "parliament.png", visible: false});
+
+	var provinces = [ec, fs, gt, kn, lp, mp, nw, nc, wc];
+
+	window.hide_parli = function() {parliament.setVisible(false);}
+	window.show_parli = function() {parliament.setVisible(true);}
+
+	window.hide_provinces = function () {
+		for (var i=0; i<provinces.length; i++) {
+			provinces[i].setVisible(false);
+		}
+	}
+
+	window.show_provinces = function () {
+		for (var i=0; i<provinces.length; i++) {
+			provinces[i].setVisible(true);
+		}
+	}
+
+
+	// Build the parliament info box.
+	window.buildMP = function() {
+		var contentInfo = ['<div class="tablewrapper"><center><h1>National Parliament</h1></center><table width="660px"></table><table width="520px">'];
+		contentInfo.push("<tr><td><b>Name:</b></td><td><b>Portfolio:</b></td></tr>");
+		var query = "SELECT 'Full Name', Portfolio, ID FROM 4045567 ORDER BY 'ID'" ;
+		var queryText = encodeURIComponent(query);
+		var gvizQuery = new google.visualization.Query('http://www.google.com/fusiontables/gvizdata?tq='  + queryText);
+
+		gvizQuery.send(function(response) {
+			var numRows = response.getDataTable().getNumberOfRows();
+			var max_row_count = 1;
+
+			for (var i = 0; i < numRows; i+= max_row_count) {
+				contentInfo.push('<tr>');
+				for (var j = 0; j < max_row_count; j++) {
+					try {
+						var name = response.getDataTable().getValue(i+j, 0);
+						var portfolio = response.getDataTable().getValue(i+j, 1).limitWidth(30);
+						var ROWID = response.getDataTable().getValue(i+j, 2);
+						contentInfo.push('<td><a href="#" onclick="window.viewMP(' + ROWID + ')">' + name.toProperCase() + '</a></td><td>' + portfolio + '</td>');
+					} catch (err) {}
+				}
+				contentInfo.push('</tr>');
+			}
+			contentInfo.push("</table></div>");
+			window.mp_box.setContent(contentInfo.join(''));
+		});
+	}
+
+	// Function for viewing a specific MP
+	window.viewMP = function(id) {
+		// Retrieve the details
+		var query = "SELECT Portfolio, Telephone, 'Cell Phone', 'E-mail', 'Full Name', 'Twitter' FROM 4045567 WHERE 'ID'='" + id + "'";
+		var queryText = encodeURIComponent(query);
+		var gvizQuery = new google.visualization.Query('http://www.google.com/fusiontables/gvizdata?tq='  + queryText);
+		var contentInfo = [];
+
+		gvizQuery.send(function(response) {
+			var portfolios = response.getDataTable().getValue(0, 0);
+			var tel = response.getDataTable().getValue(0, 1);
+			var cell = response.getDataTable().getValue(0, 2);
+			var email = response.getDataTable().getValue(0, 3);
+			var name = response.getDataTable().getValue(0, 4);
+			var twitter = response.getDataTable().getValue(0, 5);
+
+			contentInfo.push('<a href="#" onclick="window.buildMP()">< Back to Member List</a><br><br>');
+			contentInfo.push('<div class="wrapperwrapper"><div class="wrapper"><div class="left"><img src="DA.png" width="150px"></div>');
+			contentInfo.push('<div class="right">');
+			contentInfo.push('<h2>' + name.toProperCase() + '</h2>');
+			contentInfo.push('<b>Contact details:</b><br>');
+			contentInfo.push('Telephone: ' + tel + '<br>');
+			contentInfo.push('Cellphone: ' + cell + '<br>');
+			contentInfo.push('Email: ' + '<a href="mailto:' + email + '">' + email + '</a><br>');
+			contentInfo.push('<br><b>Portfolio:</b><br>')
+			contentInfo.push(portfolios + '<br><br>');
+			contentInfo.push("</div>");
+			if (twitter !== "") {
+				contentInfo.push('<center><a href="http://www.twitter.com/"' + twitter + '><br><br><img width="400" height="74" src="http://twitstamp.com/' + twitter + '/standard.png" border="0" alt="twitstamp.com" /></a></center>');
+			}
+			contentInfo.push("</div></div>");
+			window.mp_box.setContent(contentInfo.join(''));
+		});
+	}
+
+	window.mp_box = new google.maps.InfoWindow({
+		boxStyle: {
+			width: "700px"
+		}
+	});
+	window.buildMP();
+	google.maps.event.addListener(parliament, 'click', function() {
+		window.mp_box.open(map, parliament);
+	});
+
+
+	// Function for viewing a specific MPL
+	window.viewMPL = function(mpl_name, province) {
+		// Retrieve the details
+		var query = "SELECT Portfolio, Telephone, 'Cell Phone', 'E-mail' FROM 4046126 WHERE 'Full Name'='" + mpl_name + "'";
+		var queryText = encodeURIComponent(query);
+		var gvizQuery = new google.visualization.Query('http://www.google.com/fusiontables/gvizdata?tq='  + queryText);
+		var contentInfo = [];
+
+		gvizQuery.send(function(response) {
+			var portfolios = response.getDataTable().getValue(0, 0);
+			var tel = response.getDataTable().getValue(0, 1);
+			var cell = response.getDataTable().getValue(0, 2);
+			var email = response.getDataTable().getValue(0, 3);
+
+			contentInfo.push('<a href="#" onclick="window.buildMPL(\'' + province + '\')">< Back to Member List</a><br><br>');
+			contentInfo.push('<div class="wrapperwrapper"><div class="wrapper"><div class="left"><img src="DA.png" width="160px"></div>');
+			contentInfo.push('<div class="right">');
+			contentInfo.push('<h2>' + mpl_name.toProperCase() + '</h2>');
+			contentInfo.push('<b>Contact details:</b><br>');
+			contentInfo.push('Telephone: ' + tel + '<br>');
+			contentInfo.push('Cellphone: ' + cell + '<br>');
+			contentInfo.push('Email: ' + '<a href="mailto:' + email + '">' + email + '</a><br>');
+			contentInfo.push('<br><b>Portfolio:</b><br>')
+			contentInfo.push(portfolios + '<br><br>');
+			contentInfo.push("</div>");
+			var twitter = "";
+			if (twitter !== "") {
+				contentInfo.push('<center><a href="http://www.twitter.com/"' + twitter + '><br><br><img width="400" height="74" src="http://twitstamp.com/' + twitter + '/standard.png" border="0" alt="twitstamp.com" /></a></center>');
+			}
+			contentInfo.push("</div></div>");
+			window.mpl_box.setContent(contentInfo.join(''));
+		});
+	}
+
+	window.buildMPL = function(prov) {
+		window.mpl_box.setContent("<center>Loading...</center><table width='570px' height='600px'></table>");
+		if (prov === "Western Cape") {
+			var contentInfo = ['<div class="tablewrapper"><center><h1>Western Cape<br>Provincial Government</h1></center><table width="570px"></table><table width="520px">'];
+		} else {
+			var contentInfo = ['<div class="tablewrapper"><center><h1>' + prov + '<br>Provincial Legislature</h1></center><table width="570px"></table><table width="520px">'];
+		}
+		var query = "SELECT 'Full Name', Cabinet, Portfolio FROM 4046126 WHERE Province='" + prov + "'" + " ORDER BY Cabinet DESC";
+
+		var queryText = encodeURIComponent(query);
+		var gvizQuery = new google.visualization.Query('http://www.google.com/fusiontables/gvizdata?tq='  + queryText);
+
+		gvizQuery.send(function(response) {
+			var numRows = response.getDataTable().getNumberOfRows();
+			var max_row_count = 1;
+
+			for (var i = 0; i < numRows; i+= max_row_count) {
+				contentInfo.push('<tr>');
+				for (var j = 0; j < max_row_count; j++) {
+					try {
+						var name = response.getDataTable().getValue(i+j, 0);
+						var cabinet = response.getDataTable().getValue(i+j, 1);
+
+						if (cabinet === "Y") {
+							var portfolio = response.getDataTable().getValue(i+j, 2).limitWidth(30);
+						} else {
+							var portfolio = response.getDataTable().getValue(i+j, 2).limitWidth(30);
+						}
+						contentInfo.push("<td><a href='#' onclick='window.viewMPL(\"" + name + '", "' + prov + "\")'>" + name.toProperCase() + "</a></td><td>" + portfolio + "</td>");
+						} catch (err) {}
+				}
+				contentInfo.push('</tr>');
+			}
+
+			contentInfo.push("</table></div>");
+			window.mpl_box.setContent(contentInfo.join(''));
+		});
+	}
+
+	window.mpl_box = new google.maps.InfoWindow({});
+
+	google.maps.event.addListener(ec, 'click', function() {window.buildMPL('Eastern Cape'); window.mpl_box.open(map, ec);});
+	google.maps.event.addListener(fs, 'click', function() {window.buildMPL('Free State'); window.mpl_box.open(map, fs);});
+	google.maps.event.addListener(gt, 'click', function() {window.buildMPL('Gauteng'); window.mpl_box.open(map, gt);});
+	google.maps.event.addListener(kn, 'click', function() {window.buildMPL('KwaZulu-Natal'); window.mpl_box.open(map, kn);});
+	google.maps.event.addListener(lp, 'click', function() {window.buildMPL('Limpopo'); window.mpl_box.open(map, lp);});
+	google.maps.event.addListener(mp, 'click', function() {window.buildMPL('Mpumalanga'); window.mpl_box.open(map, mp);});
+	google.maps.event.addListener(nw, 'click', function() {window.buildMPL('North West'); window.mpl_box.open(map, nw);});
+	google.maps.event.addListener(nc, 'click', function() {window.buildMPL('Northern Cape'); window.mpl_box.open(map, nc);});
+	google.maps.event.addListener(wc, 'click', function() {window.buildMPL('Western Cape'); window.mpl_box.open(map, wc);});
+
+	google.maps.event.addListener(map, 'zoom_changed', function() {
+		// Close any open boxes
+		try {window.muni_window.close()} catch(err) {}
+		try {window.mp_box.close()} catch(err) {}
+		try {window.mpl_box.close()} catch(err) {}
+		try {marker.setVisible(false)} catch(err) {}
+		try {window.mayor_box.close()} catch(err) {}
+		try {window.ch_box.close()} catch(err) {}
+
+		zoomLevel = map.getZoom();
+
+		if (zoomLevel <= 5) {
+			//document.getElementById('info').innerHTML = 'You are currently at the national level. Click on the parliament icon to view your DA Members of Parliament. You can zoom in to see the <a href="#"  onclick="map.setZoom(6)">Provincial Legislatures</a>, <a href="#" onclick="map.setZoom(8)">municipalities</a> or <a href="#" onclick="map.setZoom(10)">wards</a>.';
+			window.show_parli();
+			window.hide_provinces();
+			layer_wards.setMap(null);
+			layer_muni.setMap(null);
+
+		} else if (zoomLevel > 5 && zoomLevel <= 7 ) {
+			//document.getElementById('info').innerHTML = 'You are currently at the provincial level. Click on one of the icons to view your DA Members in Provincial Legislatures. Zoom in to see the <a href="#" onclick="map.setZoom(8)">municipalities</a> or <a href="#" onclick="map.setZoom(10)">wards</a> - zoom out to see <a href="#" onclick="map.setZoom(5)">Parliament at a national level.</a>';
+			layer_wards.setMap(null);
+			layer_muni.setMap(null);
+
+			window.hide_parli();
+			window.show_provinces();
+
+		} else if (zoomLevel > 7 && zoomLevel < 10) {
+			// show munis
+			//document.getElementById('info').innerHTML = 'You are currently at the municipal level. Click within the borders of any municipality to view DA Mayors and Mayoral Committees. Zoom in to see the <a href="#" onclick="map.setZoom(10)">wards</a> - zoom out to see the <a href="#"  onclick="map.setZoom(6)">Provincial Legislatures</a> or <a href="#" onclick="map.setZoom(5)">Parliament at a national level</a>.';
+			window.hide_provinces();
+			window.hide_parli();
+			try {
+				layer_muni.setMap(null);
+				layer_wards.setMap(null);
+
+				layer_muni = new google.maps.FusionTablesLayer({
+					query: {
+						select: 'geometry',
+						from: '4133091'
+					},
+					styles: [{
+						polygonOptions: {
+							fillColor: "#0000FF",
+							fillOpacity: 0.04
+						}
+					}],
+					suppressInfoWindows: true
+				});
+
+				layer_muni.setMap(map);
+				google.maps.event.addListener(layer_muni, 'click', window.muni_window);
+
+			} catch (err) {
+				layer_muni = new google.maps.FusionTablesLayer({
+					query: {
+						select: 'geometry',
+						from: '4133091'
+					},
+					styles: [{
+						polygonOptions: {
+							fillColor: "#0000FF",
+							fillOpacity: 0.04
+						}
+					}],
+					suppressInfoWindows: true
+				});
+
+				layer_muni.setMap(map);
+				google.maps.event.addListener(layer_muni, 'click', window.muni_window);
+			}
+		} else if (zoomLevel >= 10) {
+			// show wards
+			//document.getElementById('info').innerHTML = 'You are currently at the ward level. Click within the borders of any ward to view the DA Ward Councillor for that ward. Zoom out to see the <a href="#" onclick="map.setZoom(8)">municipalities</a>, <a href="#" onclick="map.setZoom(6)">Provincial Legislatures</a> or <a href="#" onclick="map.setZoom(5)">Parliament at a national level</a>.';
+			layer_muni.setMap(null);
+			layer_wards.setMap(map);
+			window.hide_provinces();
+			window.hide_parli();
+		}
+	});
+
+	google.maps.event.addListener(layer_wards, 'click', function(e) {
+		window.ch_box.setPosition(e.latLng);
+		try {window.ch_box.close()} catch(err) {}
+		//update the content of the InfoWindow
+		e.infoWindowHtml = "<h1 style='text-align: center; margin-bottom: 5px; padding-bottom: 5px;'>" + e.row['MunicName'].value.replace(/ /g, "&nbsp") + "&nbsp-&nbspWard&nbsp" + e.row['WardNo'].value + "</h1>";
+		if (e.row['Constituency Head'].value !== "") {
+			e.infoWindowHtml += '<center><span style="margin-bottom: 5px; padding-bottom: 5px;"><a href="#" onclick=\'window.viewCH("' + e.row['Constituency Head'].value + '")\'>View Constituency representation</a></span></center><br>';
+		} else {
+			e.infoWindowHtml += '<br>';
+		}
+
+		if (e.row['Full Name'].value !== "") {
+			// The DA has a councillor in the area, display the appropriate HTML
+			e.infoWindowHtml += '<div class="wrapperwrapper"><div class="wrapper"><div class="left"><img src="DA.png" width="160px"></div>';
+			e.infoWindowHtml += '<div class="right">';
+			e.infoWindowHtml += '<h2>' + e.row['Full Name'].value + '</h2>';
+			e.infoWindowHtml += '<b>Contact details:</b><br>';
+			e.infoWindowHtml += 'Telephone: ' + e.row['Tel'].value + '<br>';
+			e.infoWindowHtml += 'Cellphone: ' + e.row['Cell'].value + '<br>';
+			e.infoWindowHtml += 'Email: ' + '<a href="mailto:' + e.row['E-mail'].value + '">' + e.row['E-mail'].value + '</a><br>';
+			//if (e.row['E-mail2'].value !== "")
+			//	e.infoWindowHtml += 'Email: ' + '<a href="mailto:' + e.row['E-mail2'].value + '">' + e.row['E-mail2'].value + '</a><br>';
+
+			var ec_number = "041 582 1770";
+			var wc_number = "021 481 4300";
+			var nc_number = "053 831 3443";
+			var kz_number = "031 502 2300";
+			var gt_number = "011 242 8800";
+			var fs_number = "051 407 1234";
+			var lp_number = "015 295 9080";
+			var mp_number = "013 282 1225";
+			var nw_number = "018 293 2905";
+			var number = "";
+
+			if (e.row['PROVINCE'].value === "Eastern Cape") {
+				number = ec_number;
+			} else if (e.row['PROVINCE'].value === "Western Cape") {
+				number = wc_number;
+			} else if (e.row['PROVINCE'].value === "Northern Cape") {
+				number = nc_number;
+			} else if (e.row['PROVINCE'].value === "KwaZulu-Natal") {
+				number = kz_number;
+			} else if (e.row['PROVINCE'].value === "Gauteng") {
+				number = gt_number;
+			} else if (e.row['PROVINCE'].value === "Free State") {
+				number = fs_number;
+			} else if (e.row['PROVINCE'].value === "Limpopo") {
+				number = lp_number;
+			} else if (e.row['PROVINCE'].value === "Mpumalanga") {
+				number = mp_number;
+			} else if (e.row['PROVINCE'].value === "North West") {
+				number = nw_number;
+			}
+
+			e.infoWindowHtml += '<br><b>' + e.row['PROVINCE'].value + ' Provincial Office' + '</b><br>';
+			e.infoWindowHtml += 'Telephone: ' + number + '<br>';
+
+			e.infoWindowHtml += "</div>";
+
+			var twitter = "";
+			if (twitter !== "") {
+				e.infoWindowHtml += '<center><a href="http://www.twitter.com/"' + twitter + '><br><br><img width="400" height="74" src="http://twitstamp.com/' + twitter + '/standard.png" border="0" alt="twitstamp.com" /></a></center>';
+			}
+
+			e.infoWindowHtml += "</div></div>";
+		} else {
+			// No DA, show PR info
+			e.infoWindowHtml += '<center>This is not yet a DA-controlled ward, but your PR councillor is</center><br><div class="wrapperwrapper"><div class="wrapper"><div class="left"><img src="DA.png" width="160px"></div>';
+			e.infoWindowHtml += '<div class="right">';
+			e.infoWindowHtml += '<h2>' + e.row['DA Councillor Name & Surname'].value + '</h2>';
+			e.infoWindowHtml += '<b>Contact details:</b><br>';
+			e.infoWindowHtml += 'Cellphone: ' + e.row['DA Councillor Cell Number'].value + '<br>';
+			e.infoWindowHtml += 'Email: ' + '<a href="mailto:' + e.row['DA Councillor Email Address'].value + '">' + e.row['DA Councillor Email Address'].value + '</a><br>';
+
+			var ec_number = "041 582 1770";
+			var wc_number = "021 481 4300";
+			var nc_number = "053 831 3443";
+			var kz_number = "031 502 2300";
+			var gt_number = "011 242 8800";
+			var fs_number = "051 407 1234";
+			var lp_number = "015 295 9080";
+			var mp_number = "013 282 1225";
+			var nw_number = "018 293 2905";
+			var number = "";
+
+			if (e.row['PROVINCE'].value === "Eastern Cape") {
+				number = ec_number;
+			} else if (e.row['PROVINCE'].value === "Western Cape") {
+				number = wc_number;
+			} else if (e.row['PROVINCE'].value === "Northern Cape") {
+				number = nc_number;
+			} else if (e.row['PROVINCE'].value === "KwaZulu-Natal") {
+				number = kz_number;
+			} else if (e.row['PROVINCE'].value === "Gauteng") {
+				number = gt_number;
+			} else if (e.row['PROVINCE'].value === "Free State") {
+				number = fs_number;
+			} else if (e.row['PROVINCE'].value === "Limpopo") {
+				number = lp_number;
+			} else if (e.row['PROVINCE'].value === "Mpumalanga") {
+				number = mp_number;
+			} else if (e.row['PROVINCE'].value === "North West") {
+				number = nw_number;
+			}
+
+			e.infoWindowHtml += '<br><b>' + e.row['PROVINCE'].value + ' Provincial Office' + '</b><br>';
+			e.infoWindowHtml += 'Telephone: ' + number + '<br>';
+
+
+			e.infoWindowHtml += "</div>";
+
+			var twitter = "";
+			if (twitter !== "") {
+				e.infoWindowHtml += '<center><a href="http://www.twitter.com/"' + twitter + '><br><br><img width="400" height="74" src="http://twitstamp.com/' + twitter + '/standard.png" border="0" alt="twitstamp.com" /></a></center>';
+			}
+
+			e.infoWindowHtml += "</div></div>";
+		}
+	});
+
+	window.ch_box = new google.maps.InfoWindow({});
+
+	// Function for viewing a specific constituency head
+	window.viewCH = function(ch_name) {
+		// Retrieve the details
+		var query = "SELECT Telephone, 'Cell Phone', 'E-mail' FROM 4045349 WHERE 'Full Name'='" + ch_name + "'";
+		var queryText = encodeURIComponent(query);
+		var gvizQuery = new google.visualization.Query('http://www.google.com/fusiontables/gvizdata?tq='  + queryText);
+
+		window.ch_box.setContent("Loading...");
+		window.ch_box.open(map);
+
+		gvizQuery.send(function(response) {
+			var tel = response.getDataTable().getValue(0, 0);
+			var cell = response.getDataTable().getValue(0, 1);
+			var email = response.getDataTable().getValue(0, 2);
+			var contentInfo = [];
+
+			contentInfo.push('<div class="wrapperwrapper"><div class="wrapper"><div class="left"><img src="DA.png" width="160px"></div>');
+			contentInfo.push('<div class="right">');
+			contentInfo.push('<h2>' + ch_name.toProperCase() + '</h2>');
+			contentInfo.push('<b>Contact details:</b><br>');
+			contentInfo.push('Telephone: ' + tel + '<br>');
+			contentInfo.push('Cellphone: ' + cell + '<br>');
+			contentInfo.push('Email: ' + '<a href="mailto:' + email + '">' + email + '</a><br>');
+			contentInfo.push("</div>");
+			var twitter = "";
+			if (twitter !== "") {
+				contentInfo.push('<center><a href="http://www.twitter.com/"' + twitter + '><br><br><img width="400" height="74" src="http://twitstamp.com/' + twitter + '/standard.png" border="0" alt="twitstamp.com" /></a></center>');
+			}
+			contentInfo.push("</div></div>");
+			window.ch_box.setContent(contentInfo.join(''));
+		});
+	}
+	window.build_muni = function(muni) {
+		window.mayor_box.setContent("<center>Loading...</center><table width='570px' height='600px'></table>");
+		window.mayor_box.open(map);
+
+		var contentInfo = ['<div class="tablewrapper"><center><h1>' + muni + '</h1></center><table width="570px"></table><table width="520px">'];
+
+		var query = "SELECT 'Name', 'Portfolio' FROM 3528258 WHERE Council='" + muni + "'";
+
+		var queryText = encodeURIComponent(query);
+		var gvizQuery = new google.visualization.Query('http://www.google.com/fusiontables/gvizdata?tq='  + queryText);
+
+		gvizQuery.send(function(response) {
+			var numRows = response.getDataTable().getNumberOfRows();
+			var max_row_count = 1;
+
+			for (var i = 0; i < numRows; i+= max_row_count) {
+				contentInfo.push('<tr>');
+				for (var j = 0; j < max_row_count; j++) {
+					try {
+						var name = response.getDataTable().getValue(i+j, 0);
+						var portfolio = response.getDataTable().getValue(i+j, 1).limitWidth(30);
+						contentInfo.push('<td><a href="#" onclick="window.viewMayco(\'' + name + '\')">' + name.toProperCase().limitWidth(15) + '</a></td><td>' + portfolio + '</td>');
+					} catch (err) {}
+				}
+				contentInfo.push('</tr>');
+			}
+
+			contentInfo.push("</table></div>");
+			window.mayor_box.setContent(contentInfo.join(''));
+		});
+	}
+
+	// Function for viewing a specific MayCo member
+	window.viewMayco = function(mayco_name) {
+		// Retrieve the details
+		var query = "SELECT Portfolio, Tel, 'Mobile', 'Email', 'Council' FROM 3528258 WHERE 'Name'='" + mayco_name + "'";
+		var queryText = encodeURIComponent(query);
+		var gvizQuery = new google.visualization.Query('http://www.google.com/fusiontables/gvizdata?tq='  + queryText);
+		var contentInfo = [];
+
+		gvizQuery.send(function(response) {
+			var portfolios = response.getDataTable().getValue(0, 0);
+			var tel = response.getDataTable().getValue(0, 1);
+			var cell = response.getDataTable().getValue(0, 2);
+			var email = response.getDataTable().getValue(0, 3);
+			var muni = response.getDataTable().getValue(0, 4);
+
+			contentInfo.push('<a href="#" onclick="window.build_muni(\'' + muni + '\')">< Back to Member List</a><br><br>');
+			contentInfo.push('<div class="wrapperwrapper"><div class="wrapper"><div class="left"><img src="DA.png" width="160px"></div>');
+			contentInfo.push('<div class="right">');
+			contentInfo.push('<h2>' + mayco_name.toProperCase() + '</h2>');
+			contentInfo.push('<b>Contact details:</b><br>');
+			contentInfo.push('Telephone: ' + tel + '<br>');
+			contentInfo.push('Cellphone: ' + cell + '<br>');
+			contentInfo.push('Email: ' + '<a href="mailto:' + email + '">' + email + '</a><br>');
+			contentInfo.push('<br><b>Portfolio:</b><br>')
+			contentInfo.push(portfolios + '<br><br>');
+			contentInfo.push("</div>");
+			var twitter = "";
+			if (twitter !== "") {
+				contentInfo.push('<center><a href="http://www.twitter.com/"' + twitter + '><br><br><img width="400" height="74" src="http://twitstamp.com/' + twitter + '/standard.png" border="0" alt="twitstamp.com" /></a></center>');
+			}
+			contentInfo.push("</div></div>");
+			window.mayor_box.setContent(contentInfo.join(''));
+		});
+	}
+
+	window.mayor_box = new google.maps.InfoWindow({});
+
+	window.muni_window = function (e) {
+		//update the content of the InfoWindow
+		//e.infoWindowHtml = "<h1 style='text-align: center;'>" + e.row['MUNICCODE'].value.replace(/ /g, "&nbsp") + "</h1>";
+
+		if (e.row['Name of Council'].value !== "") {
+			// The DA controls the municipality, display the appropriate HTML
+			window.mayor_box.setPosition(e.latLng);
+			window.build_muni(e.row['Name of Council'].value);
+		} else {
+			// No DA
+			var ec_number = "041 582 1770";
+			var wc_number = "021 481 4300";
+			var nc_number = "053 831 3443";
+			var kz_number = "031 502 2300";
+			var gt_number = "011 242 8800";
+			var fs_number = "051 407 1234";
+			var lp_number = "015 295 9080";
+			var mp_number = "013 282 1225";
+			var nw_number = "018 293 2905";
+			var number = "";
+
+			if (e.row['PROVINCE'].value === "Eastern Cape") {
+				number = ec_number;
+			} else if (e.row['PROVINCE'].value === "Western Cape") {
+				number = wc_number;
+			} else if (e.row['PROVINCE'].value === "Northern Cape") {
+				number = nc_number;
+			} else if (e.row['PROVINCE'].value === "KwaZulu-Natal") {
+				number = kz_number;
+			} else if (e.row['PROVINCE'].value === "Gauteng") {
+				number = gt_number;
+			} else if (e.row['PROVINCE'].value === "Free State") {
+				number = fs_number;
+			} else if (e.row['PROVINCE'].value === "Limpopo") {
+				number = lp_number;
+			} else if (e.row['PROVINCE'].value === "Mpumalanga") {
+				number = mp_number;
+			} else if (e.row['PROVINCE'].value === "North West") {
+				number = nw_number;
+			}
+
+
+			window.mayor_box.setContent("Unfortunately this municipality is not yet a DA-controlled municipality. Zoom in for your DA Ward Councillors, or contact your DA Provincial Office on " + number + " for assistance.");
+			window.mayor_box.setPosition(e.latLng);
+			window.mayor_box.open(map);
+		}
+
+	}
+	google.maps.event.addListener(layer_muni, 'click', window.muni_window);
+
+var outerPoints = [
+new google.maps.LatLng(5.042361,-25.154460),
+new google.maps.LatLng(8.532790,81.720540),
+new google.maps.LatLng(-54.293700,70.822103),
+new google.maps.LatLng(-55.705076,-28.318522),
+new google.maps.LatLng(3.289262,-25.857585)
+];
+var innerPoints0 = [
+new google.maps.LatLng(-28.887387,16.088216),
+new google.maps.LatLng(-29.615868,16.571614),
+new google.maps.LatLng(-30.225274,16.835286),
+new google.maps.LatLng(-30.566419,17.011067),
+new google.maps.LatLng(-31.732274,17.450520),
+new google.maps.LatLng(-32.291215,17.670247),
+new google.maps.LatLng(-32.661941,17.362630),
+new google.maps.LatLng(-33.067971,17.362630),
+new google.maps.LatLng(-33.435471,17.318685),
+new google.maps.LatLng(-34.093060,17.626302),
+new google.maps.LatLng(-34.528640,18.153645),
+new google.maps.LatLng(-34.997959,19.032552),
+new google.maps.LatLng(-35.141828,19.472005),
+new google.maps.LatLng(-35.213667,20.306966),
+new google.maps.LatLng(-35.069925,21.185872),
+new google.maps.LatLng(-34.889892,21.713216),
+new google.maps.LatLng(-34.637181,22.196614),
+new google.maps.LatLng(-34.528640,23.295247),
+new google.maps.LatLng(-34.601016,24.393880),
+new google.maps.LatLng(-34.745580,25.184895),
+new google.maps.LatLng(-34.419957,26.195638),
+new google.maps.LatLng(-33.910903,27.338216),
+new google.maps.LatLng(-33.508785,28.217122),
+new google.maps.LatLng(-32.661941,29.227864),
+new google.maps.LatLng(-31.620078,30.546224),
+new google.maps.LatLng(-30.944066,31.117513),
+new google.maps.LatLng(-30.149303,31.381185),
+new google.maps.LatLng(-29.577656,32.084310),
+new google.maps.LatLng(-29.079595,32.699544),
+new google.maps.LatLng(-28.153761,33.182942),
+new google.maps.LatLng(-27.102552,33.314778),
+new google.maps.LatLng(-26.789158,33.402669),
+new google.maps.LatLng(-26.710673,32.084310),
+new google.maps.LatLng(-26.828380,32.930257),
+new google.maps.LatLng(-26.779350,32.172200),
+new google.maps.LatLng(-26.435552,32.128255),
+new google.maps.LatLng(-26.209066,32.106282),
+new google.maps.LatLng(-25.932749,32.117269),
+new google.maps.LatLng(-25.932749,31.996419),
+new google.maps.LatLng(-25.774562,31.996419),
+new google.maps.LatLng(-25.487310,31.985433),
+new google.maps.LatLng(-25.268935,32.040364),
+new google.maps.LatLng(-24.900782,32.029378),
+new google.maps.LatLng(-24.261383,32.018392),
+new google.maps.LatLng(-24.070937,31.897542),
+new google.maps.LatLng(-23.910341,31.886556),
+new google.maps.LatLng(-23.759601,31.754720),
+new google.maps.LatLng(-23.467676,31.556966),
+new google.maps.LatLng(-23.215496,31.600911),
+new google.maps.LatLng(-22.354542,31.282308),
+new google.maps.LatLng(-22.232560,30.754964),
+new google.maps.LatLng(-22.263065,30.524251),
+new google.maps.LatLng(-22.324056,30.480306),
+new google.maps.LatLng(-22.313893,30.282552),
+new google.maps.LatLng(-22.191876,30.128743),
+new google.maps.LatLng(-22.222390,30.029866),
+new google.maps.LatLng(-22.079934,29.667317),
+new google.maps.LatLng(-22.151180,29.282796),
+new google.maps.LatLng(-22.202048,29.019124),
+new google.maps.LatLng(-22.395178,28.898274),
+new google.maps.LatLng(-22.466264,28.755452),
+new google.maps.LatLng(-22.506868,28.491780),
+new google.maps.LatLng(-22.537314,28.294026),
+new google.maps.LatLng(-22.659027,28.151204),
+new google.maps.LatLng(-22.811018,27.964437),
+new google.maps.LatLng(-23.003296,27.777669),
+new google.maps.LatLng(-23.134698,27.744710),
+new google.maps.LatLng(-23.124594,27.590901),
+new google.maps.LatLng(-23.235688,27.546956),
+new google.maps.LatLng(-23.346689,27.404134),
+new google.maps.LatLng(-23.407196,27.261312),
+new google.maps.LatLng(-23.518054,27.030599),
+new google.maps.LatLng(-23.638883,26.942708),
+new google.maps.LatLng(-23.870161,26.887776),
+new google.maps.LatLng(-24.141134,26.821858),
+new google.maps.LatLng(-24.441544,26.470296),
+new google.maps.LatLng(-24.571500,26.305501),
+new google.maps.LatLng(-24.651406,26.008870),
+new google.maps.LatLng(-24.711302,25.866048),
+new google.maps.LatLng(-24.860916,25.811116),
+new google.maps.LatLng(-25.030259,25.789144),
+new google.maps.LatLng(-25.179486,25.701253),
+new google.maps.LatLng(-25.457555,25.602376),
+new google.maps.LatLng(-25.626070,25.525472),
+new google.maps.LatLng(-25.725085,25.184895),
+new google.maps.LatLng(-25.705289,24.932210),
+new google.maps.LatLng(-25.784455,24.822347),
+new google.maps.LatLng(-25.774562,24.690511),
+new google.maps.LatLng(-25.705289,24.448812),
+new google.maps.LatLng(-25.665686,24.338948),
+new google.maps.LatLng(-25.576531,24.196126),
+new google.maps.LatLng(-25.566621,24.119222),
+new google.maps.LatLng(-25.566621,23.987386),
+new google.maps.LatLng(-25.526972,23.910481),
+new google.maps.LatLng(-25.457555,23.844563),
+new google.maps.LatLng(-25.427792,23.778645),
+new google.maps.LatLng(-25.398022,23.679769),
+new google.maps.LatLng(-25.348390,23.558919),
+new google.maps.LatLng(-25.298737,23.482015),
+new google.maps.LatLng(-25.249063,23.427083),
+new google.maps.LatLng(-25.229188,23.339192),
+new google.maps.LatLng(-25.229188,23.130452),
+new google.maps.LatLng(-25.298737,22.943685),
+new google.maps.LatLng(-25.477392,22.822835),
+new google.maps.LatLng(-25.764668,22.712972),
+new google.maps.LatLng(-25.962386,22.614095),
+new google.maps.LatLng(-26.080858,22.570149),
+new google.maps.LatLng(-26.159772,22.416341),
+new google.maps.LatLng(-26.346980,22.152669),
+new google.maps.LatLng(-26.494562,22.064778),
+new google.maps.LatLng(-26.583020,21.998860),
+new google.maps.LatLng(-26.602669,21.845052),
+new google.maps.LatLng(-26.671411,21.746175),
+new google.maps.LatLng(-26.749922,21.658284),
+new google.maps.LatLng(-26.808770,21.658284),
+new google.maps.LatLng(-26.798965,21.504476),
+new google.maps.LatLng(-26.798965,21.405599),
+new google.maps.LatLng(-26.798965,21.240804),
+new google.maps.LatLng(-26.789158,21.086995),
+new google.maps.LatLng(-26.769542,20.856282),
+new google.maps.LatLng(-26.838183,20.735433),
+new google.maps.LatLng(-26.602669,20.669515),
+new google.maps.LatLng(-26.465061,20.669515),
+new google.maps.LatLng(-26.346980,20.779378),
+new google.maps.LatLng(-26.051251,20.889241),
+new google.maps.LatLng(-25.853682,20.889241),
+new google.maps.LatLng(-25.715187,20.779378),
+new google.maps.LatLng(-25.417870,20.636556),
+new google.maps.LatLng(-25.169544,20.504720),
+new google.maps.LatLng(-25.060119,20.416829),
+new google.maps.LatLng(-24.910747,20.306966),
+new google.maps.LatLng(-24.850947,20.109212),
+new google.maps.LatLng(-24.751216,20.010335),
+new google.maps.LatLng(-24.761193,19.966390),
+new google.maps.LatLng(-28.395648,19.955403),
+new google.maps.LatLng(-28.395648,19.823567),
+new google.maps.LatLng(-28.453619,19.768636),
+new google.maps.LatLng(-28.453619,19.647786),
+new google.maps.LatLng(-28.511559,19.537923),
+new google.maps.LatLng(-28.608054,19.395101),
+new google.maps.LatLng(-28.665908,19.428060),
+new google.maps.LatLng(-28.675547,19.241292),
+new google.maps.LatLng(-28.839280,19.208333),
+new google.maps.LatLng(-28.887387,19.164388),
+new google.maps.LatLng(-28.887387,19.054524),
+new google.maps.LatLng(-28.800778,18.955647),
+new google.maps.LatLng(-28.781521,18.560140),
+new google.maps.LatLng(-28.839280,18.384358),
+new google.maps.LatLng(-28.848903,18.186604),
+new google.maps.LatLng(-28.752630,18.010823),
+new google.maps.LatLng(-28.714096,17.835042),
+new google.maps.LatLng(-28.665908,17.560384),
+new google.maps.LatLng(-28.588762,17.505452),
+new google.maps.LatLng(-28.443960,17.450520),
+new google.maps.LatLng(-28.298959,17.450520),
+new google.maps.LatLng(-28.211864,17.373616),
+new google.maps.LatLng(-28.153761,17.230794),
+new google.maps.LatLng(-27.959856,17.186849),
+new google.maps.LatLng(-28.008365,17.000081),
+new google.maps.LatLng(-28.095626,16.802327),
+new google.maps.LatLng(-28.202182,16.802327),
+new google.maps.LatLng(-28.337645,16.692464),
+new google.maps.LatLng(-28.472936,16.604573),
+new google.maps.LatLng(-28.588762,16.318929),
+new google.maps.LatLng(-28.810404,16.143147)
+];
+var myCoordinates = [outerPoints,innerPoints0];
+var polyOptions = {
+paths: myCoordinates,
+strokeColor: "#FF0000",
+strokeOpacity: 0,
+strokeWeight: 0,
+fillColor: "#000000",
+fillOpacity: 0.3
+};
+var it = new google.maps.Polygon(polyOptions);
+it.setMap(map);
+
+}
+
+		var query = "SELECT Portfolio, Telephone, 'Cell Phone', 'E-mail', 'Full Name', 'Twitter' FROM 4045567 WHERE 'ID'='" + id + "'";
+		var queryText = encodeURIComponent(query);
+		alert('http://www.google.com/fusiontables/gvizdata?tq='  + queryText);
+
+</script>
+</head>
+<body onload="initialize()">
+<div id="search" style="width: 800px; margin: 15px">
+<h1>How to use this map?</h1>
+<p>
+Type in your street address or suburb and then click on the relevant area of <br/>the map to display your Ward Councillor's details.
+</p>
+<input id="searchTextField" type="text" style="width: 650px;" placeholder="Search by address">
+</div>
+</div>
+<div id="map_canvas" style="height: 500px; width: 650px; margin: 15px; visibility: hidden;"></div>
+<div id="info" style="width: 800px; margin: 15px; visibility: hidden;">
+
+<!--View <a href="#" onclick="map.setZoom(10)">wards</a>/<a href="#" onclick="map.setZoom(8)">municipalities</a>, <a href="#" onclick="map.setZoom(6)">Provincial Legislatures</a> or <a href="#" onclick="map.setZoom(4)">Parliament at a National level.</a>-->
+</body>
+</html>

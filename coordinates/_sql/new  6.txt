@@ -1,0 +1,18 @@
+municipality:
+-------------
+<option value="[0-9]{4}~[0-9]{1}">
+insert into area\(area_code, area_id, parent_code, areatype_code, area_name, area_capital\) values\(createCode\(\), '
+
+]</option>
+') on duplicate key update area_code = createCode();
+
+'NW([0-9]{3})', 
+'NW372',  'north-west',  'municipality'
+
+ward:
+-----
+insert into area\(area_code, area_id, parent_code, areatype_code\) values\(createCode\(\), '
+
+
+">[0-9]{8}</option>
+', 'FS161', 'ward'\) on duplicate key update area_code = createCode\(\);
